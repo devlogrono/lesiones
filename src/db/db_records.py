@@ -183,6 +183,7 @@ def load_lesiones_db(as_df=True):
             l.fecha_hora_registro,
             l.usuario
         FROM lesiones l
+        LEFT JOIN futbolistas f ON l.id_jugadora = f.identificacion
         LEFT JOIN lugares lu ON l.lugar_id = lu.id
         LEFT JOIN segmentos_corporales s ON l.segmento_id = s.id
         LEFT JOIN zonas_segmento z ON l.zona_cuerpo_id = z.id
@@ -190,6 +191,7 @@ def load_lesiones_db(as_df=True):
         LEFT JOIN tipo_lesion t ON l.tipo_lesion_id = t.id
         LEFT JOIN tipo_especifico_lesion te ON l.tipo_especifico_id = te.id
         LEFT JOIN mecanismos m ON l.mecanismo_id = m.id
+        WHERE f.id_estado = 1
         ORDER BY l.fecha_hora_registro DESC;
         """
 
@@ -233,7 +235,8 @@ def get_ultima_lesion_id_por_jugadora(id_jugadora: str) -> str | None:
         query = """
         SELECT id_lesion
         FROM lesiones
-        WHERE id_jugadora = %s
+        LEFT JOIN futbolistas f ON l.id_jugadora = f.identificacion
+        WHERE id_jugadora = %s AND f.id_estado = 1
         ORDER BY COALESCE(fecha_hora_registro, fecha_lesion) DESC
         LIMIT 1;
         """
@@ -317,6 +320,7 @@ def get_records_plus_players_db(plantel: str = None) -> pd.DataFrame:
         LEFT JOIN segmentos_corporales s ON l.segmento_id = s.id
         LEFT JOIN zonas_segmento z ON l.zona_cuerpo_id = z.id
         LEFT JOIN zonas_anatomicas za ON l.zona_especifica_id = za.id
+        WHERE f.id_estado = 1
         ORDER BY l.fecha_hora_registro DESC;
         """
 
@@ -397,6 +401,7 @@ def load_jugadoras_db() -> tuple[pd.DataFrame | None, str | None]:
         FROM futbolistas f
         LEFT JOIN informacion_futbolistas i 
             ON f.identificacion = i.identificacion
+        WHERE f.id_estado = 1
         ORDER BY f.nombre ASC;
         """
 
