@@ -63,9 +63,15 @@ def menu():
             #st.page_link("pages/ficha_medica.py", label=t("Ficha Médica"), icon=":material/lab_profile:")
             st.page_link("pages/developer.py", label=t("Developer Area"), icon=":material/code_blocks:")
 
-        btnSalir = st.button(t("Cerrar Sesión"), type="tertiary", icon=":material/logout:")
+        if st.session_state["auth"]["rol"].lower() in ["developer"]:
+            if st.button(t("Limpiar cache & reiniciar"), type="tertiary", icon=":material/refresh:"):
+                    st.cache_data.clear()
+                    st.cache_resource.clear()
 
-        if btnSalir:
-            logout()
+                    st.success("Cache cleared successfully.")
+                    st.rerun()
+
+        if st.button(t("Cerrar Sesión"), type="tertiary", icon=":material/logout:"):
+            logout()           
 
 
