@@ -337,7 +337,7 @@ def get_records_plus_players_db(plantel: str = None) -> pd.DataFrame:
         # Crear columna nombre_jugadora
         df["nombre_jugadora"] = (
             df["nombre"].fillna("") + " " + df["apellido"].fillna("")
-        ).str.strip()
+        ).str.strip().str.upper()
 
         # Reordenar columnas
         columnas = df.columns.tolist()
@@ -416,7 +416,7 @@ def load_jugadoras_db() -> tuple[pd.DataFrame | None, str | None]:
         df["apellido"] = df["apellido"].astype(str).str.strip().str.title()
 
         # Crear columna nombre completo
-        df["nombre_jugadora"] = (df["nombre"] + " " + df["apellido"]).str.strip()
+        df["nombre_jugadora"] = (df["nombre"] + " " + df["apellido"]).str.strip().str.upper()
 
         # Reordenar columnas
         orden = [
