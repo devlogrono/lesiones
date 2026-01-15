@@ -72,7 +72,7 @@ def selection_header(modo: int = 1):
         jugadora_seleccionada = st.selectbox(
             t("Jugadora"),
             options=jugadoras_filtradas,
-            format_func=lambda x: f'{jugadoras_filtradas.index(x) + 1} - {x["nombre"]} {x["apellido"]}',
+            format_func=lambda x: f'{jugadoras_filtradas.index(x) + 1} - {x["nombre_jugadora"]}',
             placeholder=t("Seleccione una Jugadora"),
             index=None
         )
