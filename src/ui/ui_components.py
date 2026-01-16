@@ -56,26 +56,66 @@ def selection_header(modo: int = 1):
         
         clave = MAP_POSICIONES_INVERTIDO.get(posicion_traducida)
         posicion = MAP_POSICIONES.get(clave)
-        #st.text(f"Clave interna: {posicion}")
+        
+        filtro_actual = (
+            competicion["codigo"] if competicion else None,
+            posicion
+        )
+
+        if st.session_state.get("last_filtro_jugadora") != filtro_actual:
+            st.session_state.pop("jugadora_nombre", None)
+            st.session_state["last_filtro_jugadora"] = filtro_actual
     with col3:
         if competicion:
             codigo_competicion = competicion["codigo"]
             jug_df_filtrado = jug_df[jug_df["plantel"] == codigo_competicion]
         else:
-            jug_df_filtrado = jug_df
+            jug_df_filtrado = jug_df.copy()
 
         if posicion:
-            jug_df_filtrado = jug_df_filtrado[jug_df_filtrado["posicion"] == posicion]
+            jug_df_filtrado = jug_df_filtrado[
+                jug_df_filtrado["posicion"] == posicion
+            ]
 
-        jugadoras_filtradas = jug_df_filtrado.to_dict("records")
-
-        jugadora_seleccionada = st.selectbox(
-            t("Jugadora"),
-            options=jugadoras_filtradas,
-            format_func=lambda x: f'{jugadoras_filtradas.index(x) + 1} - {x["nombre_jugadora"]}',
-            placeholder=t("Seleccione una Jugadora"),
-            index=None
+        # Lista estable de nombres
+        jugadora_nombres = (
+            jug_df_filtrado["nombre_jugadora"]
+            .astype(str)
+            .sort_values()
+            .tolist()
         )
+
+        # Resolver índice (permite vacío)
+        jugadora_index = None
+        if (
+            "jugadora_nombre" in st.session_state
+            and st.session_state["jugadora_nombre"] in jugadora_nombres
+        ):
+            jugadora_index = jugadora_nombres.index(
+                st.session_state["jugadora_nombre"]
+            )
+
+        jugadora_nombre = st.selectbox(
+            t("Jugadora"),
+            options=jugadora_nombres,
+            index=jugadora_index,                 # None → vacío inicial
+            placeholder=t("Seleccione una Jugadora"),
+            key="jugadora_selector_lesiones"
+        )
+
+        # Persistir selección
+        if jugadora_nombre:
+            st.session_state["jugadora_nombre"] = jugadora_nombre
+        else:
+            st.session_state.pop("jugadora_nombre", None)
+
+        # Reconstruir objeto completo solo si hay selección
+        jugadora_seleccionada = None
+        if "jugadora_nombre" in st.session_state:
+            jugadora_seleccionada = jug_df_filtrado[
+                jug_df_filtrado["nombre_jugadora"].astype(str)
+                == st.session_state["jugadora_nombre"]
+            ].iloc[0].to_dict()
 
     if modo >= 2:
         with col4:
@@ -112,7 +152,8 @@ def selection_header(modo: int = 1):
                     records = records[records["tipo_lesion"] == selected_tipo]
 
    
-    #st.dataframe(jug_df_filtrado)
+    jug_df_filtrado = jug_df_filtrado if "jug_df_filtrado" in locals() else pd.DataFrame()
+
     # Si no hay jugadoras en ese plantel o posición
     if jug_df_filtrado.empty:
         #st.warning("⚠️ No hay jugadoras disponibles para este plantel o posición seleccionada.")
